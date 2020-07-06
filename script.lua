@@ -58,11 +58,11 @@ function findAround(range)
       local playerPosX, playerPosY, playerPosZ = lb.ObjectPosition("player")
       local x1, y1, z1 = lb.ObjectPosition(guid)
       local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, x1, y1, z1)
- 
+
+      
 
       if not(UnitIsDead(guid)) then
-         print(x, type, npc_id, lb.ObjectType(guid), x1,y1,z1)
-         TargetUnit(guid)
+         --print(x, type, npc_id, lb.ObjectType(guid), x1,y1,z1)
          lb.Unlock(TargetUnit, guid)
        --  lb.Unlock(CastSpellByName, "Frostbolt")
       end
