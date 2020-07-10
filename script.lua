@@ -19,6 +19,32 @@ function GoTo(X,Y,Z)
 end
 
 
+function sort_alg(a, b)
+   return a[1] < b[1]
+end
+
+function get_enemies(range)
+   list = {}
+   local playerPosX, playerPosY, playerPosZ = lb.ObjectPosition("player")
+
+   for _, guid in pairs(lb.GetObjects(range, 5)) do
+      if (lb.UnitTagHandler(UnitIsEnemy, guid)) then
+         print("add enemy")
+         if (not lb.UnitTagHandler(UnitIsDead, guid)) then
+            print("add not dead") 
+            local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(guid)
+            local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, enemyPosX, enemyPosY, enemyPosZ)
+            table.insert(list, {guid, distance})
+         end
+      end
+   end
+  table.sort(list, sort_alg)
+  print("Function is complete!")
+  print(table.getn(list).." units added")
+  return list
+end
+
+
 function findAround(range)
    for x, guid in pairs(lb.GetObjects(range,5)) do
       local type, zero, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
@@ -49,10 +75,7 @@ function findAround(range)
       -- else
       --    print('жив', type, npc_id)
       -- end
-      
-
    end
 end
-findAround(50)
 --[[SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
 SomeFrame:SetScript("OnUpdate", findAround)]]--
