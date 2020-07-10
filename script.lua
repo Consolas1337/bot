@@ -27,28 +27,32 @@ function findAround(range)
       local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, x1, y1, z1)
 
    
-      --[[if not UnitIsEnemy("player", guid)  then
+      if not UnitIsEnemy("player", guid) then
          print('Враг замечен')
-         lb.UnitTagHandler(TargetUnit, guid)             таргетит и бьет врага
+         lb.UnitTagHandler(TargetUnit, guid) 
+         if UnitIsDead("target") then
+            if lb.UnitIsLootable(guid) then
+               if (distance > 2) then
+                  lb.Navigator.MoveTo(x1, y1, z1, 1)
+               else
+                  lb.UnitTagHandler(TargetUnit, guid)
+                  lb.ObjectInteract(guid)
+               end
+            --print(type, npc_id, lb.ObjectType(guid), x1,y1,z1)
+            end
+         else 
          lb.Unlock(CastSpellByName, 'Frostbolt')
-      end]]--
-      if UnitIsDead(guid) then
-         print('чел мертв', type)
-      else
-         print('жив', type)
-      end
-      if lb.UnitIsLootable(guid) then
-         if (distance > 2) then
-            lb.Navigator.MoveTo(x1, y1, z1, 1)
-         else
-            lb.UnitTagHandler(TargetUnit, guid)
-            lb.ObjectInteract(guid)
          end
-      --print(type, npc_id, lb.ObjectType(guid), x1,y1,z1)
       end
+      -- if UnitIsDead("target") then 
+      --    print('чел мертв', type, npc_id)
+      -- else
+      --    print('жив', type, npc_id)
+      -- end
+      
 
    end
 end
-findAround(20)
+findAround(50)
 --[[SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
 SomeFrame:SetScript("OnUpdate", findAround)]]--
