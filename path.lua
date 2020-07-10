@@ -6,6 +6,7 @@ end
 
 PRECISION = 2
 MODE = 1
+LOOT_FINDING_RANGE = 30
 PATH = {
     {-570.279,  -316.950, 269.366, "1"},
     {-447.442, -325.829, 268.730, "2"},
@@ -39,6 +40,60 @@ PATH = {
     {-776.793, -824.259, 233.232, "30(boss)"}, 
     {-731.865, -870.378, 232.495, "31"}, 
 }
+EXCLUDE_NPC = {
+    39900,
+    39450,
+    42608,
+    39390,
+    42495,
+    42496,
+}
+local function sort_alg(a, b)
+    return a[2] < b[2]
+end
+ 
+local function has_value(tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+    
+    return false
+end
+
+function get_enemies(range)
+    local list = {}
+    local posX, posY, posZ = lb.ObjectPosition("player")
+ 
+    for _, guid in pairs(lb.GetObjects(range, 5)) do
+        if (lb.UnitTagHandler(UnitIsEnemy, guid) and (not lb.UnitTagHandler(UnitIsDead, guid)) and (not has_value(EXCLUDE_NPC, lb.ObjectId(guid)))) then
+            local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(guid)
+            local distance = lb.GetDistance3D(posX, posY, posZ, enemyPosX, enemyPosY, enemyPosZ)
+            table.insert(list, {guid, distance})
+        end
+    end
+   table.sort(list, sort_alg)
+   print("Найдено "..table.getn(list).." врагов. ИДУ БИТЬ ЕБУЧКУ!!!")
+   return list
+end
+
+function get_loot()
+    local loot_list = {}
+    local posX, posY, posZ = lb.ObjectPosition("player")
+
+    for _, guid in pairs(lb.GetObjects(LOOT_FINDING_RANGE)) do
+        if lb.UnitIsLootable(guid) then
+            local lootPosX, lootPosY, lootPosZ = lb.ObjectPosition(guid)
+            local loot_distance = lb.GetDistance3D(posX, posY, posZ, lootPosX, lootPosY, lootPosZ)
+            table.insert(loot_list, {guid, loot_distance})
+        end
+    end
+   table.sort(loot_list, sort_alg)
+   print("Найдено "..table.getn(loot_list).." точек лута")
+   return loot_list
+end
+
 
 function go_dungenon()
     if not lb.Navigator then
@@ -52,27 +107,69 @@ function go_dungenon()
 
     local playerPosX, playerPosY, playerPosZ = lb.ObjectPosition("player")
     local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, X, Y, Z)
---  and (MODE <= 10)
-    if ((distance > PRECISION)) then
-        lb.Navigator.MoveTo(X, Y, Z, 1)
+    if (distance > PRECISION) then
+        if (MODE == 10) then 
+            list = get_enemies(50)
+            loot_list = get_loot()
+            if (table.getn(list) or table.getn(loot_list)) then
+
+                if (table.getn(list)) then -- ADD LOOT_LIST table.maxn(Array)
+                    lb.UnitTagHandler(TargetUnit, list[1][1])
+                    local state = IsCurrentAction(2)
+                    local _, duration = GetSpellCooldown("Жар преисподней")
+                    if (duration == 0) then 
+                        lb.Unlock(CastSpellByName, 'Жар преисподней') 
+                    end
+                    
+                    if (list[1][2] < 2) then
+                        if (not state) then 
+                            lb.Unlock(CastSpellByName, 'Автоматическая атака') 
+                        end
+                    else 
+                        local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(list)
+                        lb.MoveTo(enemyPosX, enemyPosY, enemyPosZ)
+                    end
+                end
+
+                if (table.getn(loot_list)) then -- ADD LOOT_LIST table.maxn(Array)
+                    local lootX, lootY, lootZ = lb.ObjectPosition(loot_list[1][1])
+                    if (loot_list[1][2] < 5) then
+                        lb.ObjectInteract(loot_list[1][1])
+                    else
+                        lb.MoveTo(lootX, lootY, lootZ)
+                    end
+                end
+
+            else
+                MODE = MODE + 1
+            end
+        else 
+            lb.Navigator.MoveTo(X, Y, Z, 1)
+        end
     else
         MODE = MODE + 1
         print("Going to: "..PATH[MODE][4])
     end
 
-    -- if (MODE == 11) then
-    --     lb.Unlock(CastSpellByName, 'Жар преисподней')
-    --     for i, guid in ipairs(lb.GetObjects(20)) do
-    --         print(guid)
-    --         if (lb.UnitIsLootable(guid)) then 
-    --             print("Вижу лут!")
-    --             lb.ObjectInteract(guid)
-    --         end
-    --     end
-    -- end
-
 end
 
+SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
+SomeFrame:SetScript("OnUpdate", go_dungenon)
+-- SomeFrame:SetScript("OnUpdate", nil)
+
+
+
+
+-- if (MODE == 11) then
+--     lb.Unlock(CastSpellByName, 'Жар преисподней')
+--     for i, guid in ipairs(lb.GetObjects(20)) do
+--         print(guid)
+--         if (lb.UnitIsLootable(guid)) then 
+--             print("Вижу лут!")
+--             lb.ObjectInteract(guid)
+--         end
+--     end
+-- end
 -- if (UnitIsEnemy("player", guid)) then
 --     print("Enemy found!")
 --     lb.Unlock(TargetUnit, lb.UnitTarget('target'))
@@ -81,8 +178,7 @@ end
 --     lb.Navigator.MoveTo(x, y, z, 1)
 -- end
 --  lb.ObjectId('player')
-SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
-SomeFrame:SetScript("OnUpdate", go_dungenon)
+
 
 
 

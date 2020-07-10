@@ -23,9 +23,9 @@ function sort_alg(a, b)
    return a[2] < b[2]
 end
 
-function get_enemies(range)
+function get_enemies(posX, posY, posZ, range)
    list = {}
-   local playerPosX, playerPosY, playerPosZ = lb.ObjectPosition("player")
+   local posX, posY,posZ = lb.ObjectPosition("player")
 
    for _, guid in pairs(lb.GetObjects(range, 5)) do
       if (lb.UnitTagHandler(UnitIsEnemy, guid)) then
@@ -33,7 +33,7 @@ function get_enemies(range)
          if (not lb.UnitTagHandler(UnitIsDead, guid)) then
             print("add not dead") 
             local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(guid)
-            local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, enemyPosX, enemyPosY, enemyPosZ)
+            local distance = lb.GetDistance3D(posX, posY, posZ, enemyPosX, enemyPosY, enemyPosZ)
             table.insert(list, {guid, distance})
          end
       end
