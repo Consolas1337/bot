@@ -6,53 +6,39 @@ if (not lb.Navigator) then
    lb.LoadScript("TypescriptNavigator")
 end
 
-function GoTo(X,Y,Z)
-   if not lb.Navigator then 
-       print("Navigator is not loaded!") 
-       return
-   end
-   local playerPosX, playerPosY, playerPosZ = lb.ObjectPosition("player")
-   local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, X, Y, Z)
-   if distance > 2 then
-       lb.Navigator.MoveTo(X, Y, Z, 1)
-   end
-end
-
-
-function findAround(range)
-   for x, guid in pairs(lb.GetObjects(range,5)) do
+function findAround()
+   for x, guid in pairs(lb.GetObjects(100,5)) do
       local type, zero, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
+      lb.UnitTagHandler(TargetUnit, guid)
       local playerPosX, playerPosY, playerPosZ = lb.ObjectPosition("player")
       local x1, y1, z1 = lb.ObjectPosition(guid)
       local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, x1, y1, z1)
+      if (lb.UnitTagHandler(UnitIsEnemy, guid)) then
+         --lb.UnitTagHandler(TargetUnit, guid)
 
-   
-      if not UnitIsEnemy("player", guid) then
-         print('Враг замечен')
-         lb.UnitTagHandler(TargetUnit, guid) 
-         if UnitIsDead("target") then
-            if lb.UnitIsLootable(guid) then
-               if (distance > 2) then
-                  lb.Navigator.MoveTo(x1, y1, z1, 1)
-               else
-                  lb.UnitTagHandler(TargetUnit, guid)
-                  lb.ObjectInteract(guid)
-               end
-            --print(type, npc_id, lb.ObjectType(guid), x1,y1,z1)
+         if distance > 30 then
+            lb.Navigator.MoveTo(x1, y1, z1, 1)
+         end
+
+         _, duration, enabled = GetSpellCooldown('Frostbolt')  
+         if (duration == 0 and enabled) then
+            lb.Unlock(CastSpellByName, 'Frostbolt')
+         end
+
+
+         if (lb.UnitTagHandler(UnitIsDead, guid) and lb.UnitIsLootable("target")) then
+            if (distance > 2) then
+               lb.Navigator.MoveTo(x1, y1, z1, 1)
+            else
+               --lb.UnitTagHandler(TargetUnit, guid)
+               lb.ObjectInteract(guid)
             end
-         else 
-         lb.Unlock(CastSpellByName, 'Frostbolt')
          end
       end
-      -- if UnitIsDead("target") then 
-      --    print('чел мертв', type, npc_id)
-      -- else
-      --    print('жив', type, npc_id)
-      -- end
-      
-
    end
 end
-findAround(50)
---[[SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
-SomeFrame:SetScript("OnUpdate", findAround)]]--
+
+SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
+SomeFrame:SetScript("OnUpdate", findAround)
+
+
