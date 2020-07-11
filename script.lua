@@ -45,14 +45,13 @@ function get_enemies(range)
 end
 
 
-function findAround(range)
-   for x, guid in pairs(lb.GetObjects(range,5)) do
-      local type, zero, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
-      local playerPosX, playerPosY, playerPosZ = lb.ObjectPosition("player")
-      local x1, y1, z1 = lb.ObjectPosition(guid)
-      local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, x1, y1, z1)
-
-   
+function findAround()
+   if table.getn(list) == 0 then
+      get_enemies(50)
+   end
+   for i, k in pairs(list) do
+      guid = k[1]
+      distance = k[2]
       if not UnitIsEnemy("player", guid) then
          print('Враг замечен')
          lb.UnitTagHandler(TargetUnit, guid) 
@@ -69,13 +68,8 @@ function findAround(range)
          else 
          lb.Unlock(CastSpellByName, 'Frostbolt')
          end
-      end
-      -- if UnitIsDead("target") then 
-      --    print('чел мертв', type, npc_id)
-      -- else
-      --    print('жив', type, npc_id)
-      -- end
+      end 
    end
 end
---[[SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
-SomeFrame:SetScript("OnUpdate", findAround)]]--
+SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
+SomeFrame:SetScript("OnUpdate", findAround)
