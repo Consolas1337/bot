@@ -4,6 +4,7 @@ if (not lb.Navigator) then
    print("Navigator loaded")
 end
 
+DIVIDE_I = 0
 PRECISION = 2
 MODE = 1
 LOOT_FINDING_RANGE = 30
@@ -95,6 +96,15 @@ function get_loot()
 end
 
 
+function divider()
+    DIVIDE_I = DIVIDE_I + 1
+    local x = math.fmod(DIVIDE_I, 30)
+    if (x == 0) then
+        go_dungenon()
+    end
+end
+
+
 function go_dungenon()
     if not lb.Navigator then
         print("Navigator is not loaded!")
@@ -111,17 +121,18 @@ function go_dungenon()
         if (MODE == 10) then 
             list = get_enemies(50)
             loot_list = get_loot()
-            if (table.getn(list) or table.getn(loot_list)) then
+            if ((table.getn(list) > 0) or (table.getn(loot_list) > 0)) then
 
-                if table.getn(loot_list) then
+                if (table.getn(loot_list) > 0) then
                     local lootX, lootY, lootZ = lb.ObjectPosition(loot_list[1][1])
                     if (loot_list[1][2] < 5) then
                         lb.ObjectInteract(loot_list[1][1])
+                        CloseLoot()
                     else
-                        lb.MoveTo(lootX, lootY, lootZ)
+                        lb.Navigator.MoveTo(lootX, lootY, lootZ, 1)
                     end
 
-                elseif table.getn(list) then
+                elseif (table.getn(list) > 0) then
                     lb.UnitTagHandler(TargetUnit, list[1][1])
                     state = IsCurrentAction(2)
                     _, duration = GetSpellCooldown("Жар преисподней")
@@ -137,7 +148,7 @@ function go_dungenon()
                         end
                     else 
                         local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(list[1][1])
-                        lb.MoveTo(enemyPosX, enemyPosY, enemyPosZ)
+                        lb.Navigator.MoveTo(enemyPosX, enemyPosY, enemyPosZ, 1)
                     end
                 end
 
@@ -149,13 +160,13 @@ function go_dungenon()
         end
     else
         MODE = MODE + 1
-        print("Going to: "..PATH[MODE][4])
     end
+        print("Going to: "..PATH[MODE][4])
 
 end
 
 SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
-SomeFrame:SetScript("OnUpdate", go_dungenon)
+SomeFrame:SetScript("OnUpdate", divider)
 -- SomeFrame:SetScript("OnUpdate", nil)
 
 
