@@ -25,7 +25,7 @@ PATH = {
     {-474.526, -559.717, 271.908, "15"}, 
     {-532.378, -578.262, 276.866, "16"}, 
     {-568.749, -555.944, 276.597, "17"}, 
-    {-703.550, -607.683, 268.766, "18"}, 
+    {-703.550, -607.683, 268.766, "18(boss)"}, 
     {-680.677, -646.186, 268.767, "19"}, 
     {-653.442, -726.783, 269.119, "20"}, 
     {-618.234, -724.752, 268.768, "21"},
@@ -48,6 +48,8 @@ EXCLUDE_NPC = {
     42495,
     42496,
 }
+INCLUDE_NPC = 40177
+
 local function sort_alg(a, b)
     return a[2] < b[2]
 end
@@ -55,6 +57,16 @@ end
 local function has_value(tab, val)
     for index, value in ipairs(tab) do
         if value == val then
+            return true
+        end
+    end
+    
+    return false
+end
+
+local function has_boss(tab, val)
+    for index, value in ipairs(tab) do
+        if lb.ObjectId(value[1]) == val then
             return true
         end
     end
@@ -95,6 +107,44 @@ function get_loot()
 end
 
 
+
+function boss_action(range)
+    list = get_enemies(range)
+    loot_list = get_loot()
+    if (table.getn(list) > 0 or table.getn(loot_list) > 0) then
+
+        if table.getn(loot_list) > 0 then
+            local lootX, lootY, lootZ = lb.ObjectPosition(loot_list[1][1])
+            if (loot_list[1][2] < 5) then
+                lb.ObjectInteract(loot_list[1][1])
+            else
+                lb.MoveTo(lootX, lootY, lootZ)
+            end
+
+        elseif table.getn(list) > 0 then
+            lb.UnitTagHandler(TargetUnit, list[1][1])
+            state = IsCurrentAction(2)
+            _, duration = GetSpellCooldown('Жар преисподней')
+
+            if (list[1][2] > 5) then
+                local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(list[1][1])
+                lb.MoveTo(enemyPosX, enemyPosY, enemyPosZ)
+            else 
+                if (state == false) then 
+                    print("автоатака")
+                    lb.Unlock(CastSpellByName, 'Автоматическая атака') 
+                end
+                if (duration == 0) then 
+                    print("каст спелла")
+                    lb.Unlock(CastSpellByName, 'Жар преисподней') 
+                end
+            end
+        end
+    else
+        MODE = MODE + 1
+    end
+end
+
 function go_dungenon()
     if not lb.Navigator then
         print("Navigator is not loaded!")
@@ -109,46 +159,14 @@ function go_dungenon()
     local distance = lb.GetDistance3D(playerPosX, playerPosY, playerPosZ, X, Y, Z)
     if (distance > PRECISION) then
         if (MODE == 10) then 
-            list = get_enemies(50)
-            loot_list = get_loot()
-            if (table.getn(list) or table.getn(loot_list)) then
-
-                if (table.getn(list)) then -- ADD LOOT_LIST table.maxn(Array)
-                    lb.UnitTagHandler(TargetUnit, list[1][1])
-                    local X, Y, Z = lb.ObjectPosition(list[1][1])
-                    print(X, Y, Z)
-                    if (list[1][2] > 5) then
-                        lb.MoveTo(X, Y, Z)
-                    end
-                    local state = IsCurrentAction(2)
-                    local _, duration = GetSpellCooldown("Жар преисподней")
-                    if (duration == 0) then 
-                        lb.Unlock(CastSpellByName, 'Жар преисподней') 
-                    end
-                    
-                    if (list[1][2] < 2) then
-                        if (not state) then 
-                            lb.Unlock(CastSpellByName, 'Автоматическая атака') 
-                        end
-                    else 
-                        local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(list)
-                        lb.MoveTo(enemyPosX, enemyPosY, enemyPosZ)
-                    end
-                end
-
-                if (table.getn(loot_list)) then -- ADD LOOT_LIST table.maxn(Array)
-                    local lootX, lootY, lootZ = lb.ObjectPosition(loot_list[1][1])
-                    if (loot_list[1][2] < 5) then
-                        lb.ObjectInteract(loot_list[1][1])
-                    else
-                        lb.MoveTo(lootX, lootY, lootZ)
-                    end
-                end
-
-            else
-                MODE = MODE + 1
+            boss_action(30) 
+        elseif (MODE > 12) and (MODE <18) then
+            list_stage_12 = get_enemies(20)
+            if  has_boss(list_stage_12, INCLUDE_NPC) then
+                boss_action(30) ---неработает
             end
-        else 
+
+        else  
             lb.Navigator.MoveTo(X, Y, Z, 1)
         end
     else
@@ -162,7 +180,7 @@ SomeFrame = CreateFrame("Frame", "SomeFrame", nil)
 SomeFrame:SetScript("OnUpdate", go_dungenon)
 -- SomeFrame:SetScript("OnUpdate", nil)
 
-
+--40177
 
 
 -- if (MODE == 11) then
@@ -227,5 +245,3 @@ SomeFrame:SetScript("OnUpdate", go_dungenon)
 -- -776.793,-824.259,233.232 --boss pos
 -- -731.865,-870.378,232.495
 -- -732.905,-899.418,229.272 --die in lava
-
-

@@ -126,7 +126,7 @@ function go_dungenon()
                     state = IsCurrentAction(2)
                     _, duration = GetSpellCooldown("Жар преисподней")
    
-                    if (list[1][2] < 2) then
+                    if (list[1][2] < 5) then
                         if (not state) then 
                             print("автоатака")
                             lb.Unlock(CastSpellByName, 'Автоматическая атака') 
@@ -136,7 +136,7 @@ function go_dungenon()
                             lb.Unlock(CastSpellByName, 'Жар преисподней') 
                         end
                     else 
-                        local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(list)
+                        local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(list[1][1])
                         lb.MoveTo(enemyPosX, enemyPosY, enemyPosZ)
                     end
                 end
