@@ -113,30 +113,31 @@ function go_dungenon()
             loot_list = get_loot()
             if (table.getn(list) or table.getn(loot_list)) then
 
-                if (table.getn(list)) then -- ADD LOOT_LIST table.maxn(Array)
-                    lb.UnitTagHandler(TargetUnit, list[1][1])
-                    local state = IsCurrentAction(2)
-                    local _, duration = GetSpellCooldown("Жар преисподней")
-                    if (duration == 0) then 
-                        lb.Unlock(CastSpellByName, 'Жар преисподней') 
-                    end
-                    
-                    if (list[1][2] < 2) then
-                        if (not state) then 
-                            lb.Unlock(CastSpellByName, 'Автоматическая атака') 
-                        end
-                    else 
-                        local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(list)
-                        lb.MoveTo(enemyPosX, enemyPosY, enemyPosZ)
-                    end
-                end
-
-                if (table.getn(loot_list)) then -- ADD LOOT_LIST table.maxn(Array)
+                if table.getn(loot_list) then
                     local lootX, lootY, lootZ = lb.ObjectPosition(loot_list[1][1])
                     if (loot_list[1][2] < 5) then
                         lb.ObjectInteract(loot_list[1][1])
                     else
                         lb.MoveTo(lootX, lootY, lootZ)
+                    end
+
+                elseif table.getn(list) then
+                    lb.UnitTagHandler(TargetUnit, list[1][1])
+                    state = IsCurrentAction(2)
+                    _, duration = GetSpellCooldown("Жар преисподней")
+   
+                    if (list[1][2] < 2) then
+                        if (not state) then 
+                            print("автоатака")
+                            lb.Unlock(CastSpellByName, 'Автоматическая атака') 
+                        end
+                        if (duration == 0) then 
+                            print("каст спелла")
+                            lb.Unlock(CastSpellByName, 'Жар преисподней') 
+                        end
+                    else 
+                        local enemyPosX, enemyPosY, enemyPosZ = lb.ObjectPosition(list)
+                        lb.MoveTo(enemyPosX, enemyPosY, enemyPosZ)
                     end
                 end
 
