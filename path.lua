@@ -223,5 +223,3 @@ SomeFrame:SetScript("OnUpdate", go_dungenon)
 -- -776.793,-824.259,233.232 --boss pos
 -- -731.865,-870.378,232.495
 -- -732.905,-899.418,229.272 --die in lava
-
-
